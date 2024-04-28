@@ -1,0 +1,39 @@
+version: "3.8"
+services:
+  hf:
+    container_name: "hf"
+    image: huggingface/transformers-cpu
+      #image: huggingface/transformers-tensorflow-cpu
+      #image: huggingface/transformers-cpu
+      #image: tensorflow/serving:latest 
+    volumes:
+      - ./context/build/src:/src
+      - ./transformers:/root/.cache/huggingface/transformers
+      - ./models:/models
+    command: /bin/bash -c "python3 /src/main.py"
+    ports:
+      - "8888:8888"
+  hub:
+    container_name: "hub"
+    build:
+      context: ./                                                                                    
+      dockerfile: ./src/hub/Dockerfile
+    volumes:
+      - ./context/hub/src:/src
+      - ./models:/models
+      - ./hub-hf-cache:/root/.cache/huggingface/
+    env_file:
+      - hub.env
+    command: /bin/bash -c "python3 /src/main.py"
+  serve:
+    container_name: "serve"
+    build:
+      context: ./context/serve
+      dockerfile: Dockerfile
+    volumes:
+      #- ./src/serve/src:/src
+      - ./models:/models
+    command: python3 main.py
+    ports:
+      - "5602:5602"
+    
